@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AuthUser {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(25)
+  password      String
+  email         String         @unique @db.VarChar(100)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  authUserRoles AuthUserRole[]
+  order         Order[]
+
+  @@map("auth_users")
+}
+
+model AuthRole {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique @db.VarChar(25)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  authUserRoles AuthUserRole[]
+
+  @@map("auth_roles")
+}
+
+model AuthUserRole {
+  id           Int      @id @default(autoincrement())
+  auth_user    AuthUser @relation(fields: [auth_user_id], references: [id])
+  auth_role    AuthRole @relation(fields: [auth_role_id], references: [id])
+  auth_user_id Int
+  auth_role_id Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("auth_user_roles")
+}
+
+model Product {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(100)
+  description   String          @db.Text()
+  price         Int             @db.Int()
+  urlImage      String          @db.VarChar(150)
+  stock         Int             @default(0) @db.Int()
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  brand_id      Int
+  category_id   Int
+  brand         Brand           @relation(fields: [brand_id], references: [id])
+  category      Category        @relation(fields: [category_id], references: [id])
+  incomeProduct IncomeProduct[]
+  order         Order[]
+
+  @@map("products")
+}
+
+model Brand {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(100)
+  brand_img  String    @db.VarChar(150)
+  created_at DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+  product    Product[]
+
+  @@map("brands")
+}
+
+model Category {
+  id           Int       @id @default(autoincrement())
+  name         String    @db.VarChar(100)
+  category_img String    @db.VarChar(150)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  product      Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(100)
+  address       String          @db.VarChar(100)
+  phone         String          @db.VarChar(100)
+  incomeProduct IncomeProduct[]
+
+  @@map("suppliers")
+}
+
+model IncomeProduct {
+  id          Int      @id @default(autoincrement())
+  product_id  Int
+  supplier_id Int
+  price       Int      @db.Int()
+  quantity    Int      @db.Int()
+  total_price Int      @db.Int()
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+  product     Product  @relation(fields: [product_id], references: [id])
+  supplier    Supplier @relation(fields: [supplier_id], references: [id])
+
+  @@map("income_products")
+}
+
+model Order {
+  id              Int            @id @default(autoincrement())
+  auth_user_id    Int            
+  product_id      Int            
+  quantity        Int            @db.Int()
+  product_price   Int            @db.Int()
+  total_price     Int            @db.Int()
+  customer_name   String         @db.VarChar(100)
+  customer_addres String         @db.VarChar(100)
+  customer_phone  String         @db.VarChar(14)
+  address_details String         @db.Text()
+  delivery_type   DeliveryType   @default(Delivery)
+  delivery_status DeliveryStatus @default(Pending)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @default(now()) @updatedAt
+  product         Product        @relation(fields: [product_id], references: [id])
+  auth_user       AuthUser       @relation(fields: [auth_user_id], references: [id])
+
+  @@map("orders")
+}
+
+enum DeliveryStatus {
+  Pending
+  Delivered
+}
+
+enum DeliveryType {
+  TakeAway
+  Delivery
+}
