@@ -68,7 +68,7 @@ model Brand {
   id         Int       @id @default(autoincrement())
   name       String    @db.VarChar(100)
   brand_img  String    @db.VarChar(150)
-  created_at DateTime  @default(now())
+  createdAt DateTime  @default(now())
   updatedAt  DateTime  @default(now()) @updatedAt
   product    Product[]
 
